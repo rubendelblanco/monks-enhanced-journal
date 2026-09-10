@@ -257,6 +257,9 @@ export class MonksEnhancedJournal {
 			MonksEnhancedJournal.currencyname = "coins";
 		} else if (game.system.id == "demonlord") {
 			MonksEnhancedJournal.pricename = "value";
+		} else if (game.system.id == "rmss") {
+			MonksEnhancedJournal.pricename = "unitCost";
+			MonksEnhancedJournal.currencyname = "money";
 		}
 
 		game.MonksEnhancedJournal = this;
@@ -4268,6 +4271,17 @@ export class MonksEnhancedJournal {
 					{ id: "ss", name: "ss", convert: 0 },
 					{ id: "cp", name: "cp", convert: 0.1 },
 					{ id: "bits", name: "bits", convert: 0.01 }
+				];
+			case "rmss":
+				return [
+					{ id: "mithril", name: i18n("rmss.currency_type.mithril"), convert: 100 },
+					{ id: "platinum", name: i18n("rmss.currency_type.platinum"), convert: 10 },
+					{ id: "gold", name: i18n("rmss.currency_type.gold"), convert: 0 },
+					{ id: "silver", name: i18n("rmss.currency_type.silver"), convert: 0.1 },
+					{ id: "bronze", name: i18n("rmss.currency_type.bronze"), convert: 0.01 },
+					{ id: "copper", name: i18n("rmss.currency_type.copper"), convert: 0.001 },
+					{ id: "tin", name: i18n("rmss.currency_type.tin"), convert: 0.0001 },
+					{ id: "iron", name: i18n("rmss.currency_type.iron"), convert: 0.00001 }
 				];
 			default:
 				return [];
