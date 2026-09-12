@@ -327,11 +327,7 @@ export class LootSheet extends EnhancedJournalSheet {
                         delete itemData._id;
                         let itemQty = getValue(itemData, quantityname(), 1);
                         setValue(itemData, quantityname(), result.quantity * itemQty);
-                        let sheet = actor.sheet;
-                        if (sheet._onDropItem)
-                            sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { } } }, itemData );
-                        else
-                            actor.createEmbeddedDocuments("Item", [itemData]);
+                        MEJHelpers.createOwnedItem(actor, itemData);
 
                         if (entry)
                             this.constructor.purchaseItem.call(this.constructor, entry, data.data._id, result.quantity, { actor });
@@ -511,11 +507,7 @@ export class LootSheet extends EnhancedJournalSheet {
                 delete itemData._id;
                 let itemQty = getValue(itemData, quantityname(), 1);
                 setValue(itemData, quantityname(), result.quantity * itemQty);
-                let sheet = actor.sheet;
-                if (sheet._onDropItem)
-                    sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { } } }, itemData);
-                else
-                    actor.createEmbeddedDocuments("Item", [itemData]);
+                MEJHelpers.createOwnedItem(actor, itemData);
 
                 if (this.document.isOwner) {
                     this.constructor.purchaseItem.call(this.constructor, this.document, item._id, result.quantity, { chatmessage: false });
@@ -562,11 +554,7 @@ export class LootSheet extends EnhancedJournalSheet {
             delete itemData._id;
             let itemQty = getValue(itemData, quantityname(), 1);
             setValue(itemData, quantityname(), result.quantity * itemQty);
-            let sheet = actor.sheet;
-            if (sheet._onDropItem)
-                sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { } } }, itemData );
-            else
-                actor.createEmbeddedDocuments("Item", [itemData]);
+            MEJHelpers.createOwnedItem(actor, itemData);
 
             await this.constructor.purchaseItem.call(this.constructor, this.document, id, result.quantity, { actor, user });
         } else if (result?.quantity === 0) {

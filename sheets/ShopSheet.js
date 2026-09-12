@@ -592,11 +592,7 @@ export class ShopSheet extends EnhancedJournalSheet {
                     if (!setting("use-generic-price"))
                         setPrice(itemData, pricename(), result.price);
                     if (!data.consumable) {
-                        let sheet = actor.sheet;
-                        if (sheet._onDropItem)
-                            sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { } } }, itemData );
-                        else
-                            actor.createEmbeddedDocuments("Item", [itemData]);
+                        MEJHelpers.createOwnedItem(actor, itemData);
                     }
 
                     MonksEnhancedJournal.emit("purchaseItem",

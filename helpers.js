@@ -16,6 +16,10 @@ export let setPrice = (item, name, price) => {
     return MEJHelpers.setPrice(item, name, price);
 }
 
+export let createOwnedItem = (actor, itemData) => {
+    return MEJHelpers.createOwnedItem(actor, itemData);
+}
+
 export class MEJHelpers {
     static getValue(item, name, defvalue = 0) {
         name = name || pricename();
@@ -50,6 +54,14 @@ export class MEJHelpers {
             cost = item;
         else if (item.system?.denomination != undefined && name != "cost") {
             cost = item.system?.value.value + " " + item.system?.denomination.value;
+        } else if (game.system.id === "rmss") {
+            // rmss stores the numeric amount (unitCost/cost) and its denomination
+            // (system.currency_type) as two separate fields, unlike the generic "13 gp"
+            // string this helper otherwise expects - combine them, or getPrice() below has no
+            // unit to read and silently defaults to gold (convert:0/reference), which is how
+            // "13 tin" was turning into "13 gold" when an item got added to a shop.
+            let value = getValue(item, name, null);
+            cost = (value != null && value !== "") ? `${value} ${item.system?.currency_type || "gold"}` : value;
         } else {
             cost = getValue(item, name, null);
         }
@@ -138,6 +150,12 @@ export class MEJHelpers {
             let value = {};
             value[price.currency] = price.value;
             setValue(item, name, { value: value }, {overwrite: true});
+        } else if (game.system.id === "rmss") {
+            // Mirror of the getSystemPrice rmss branch: write the amount as-is in its own
+            // denomination (system.currency_type) instead of toDefaultCurrency's gold-converted
+            // number, which would leave currency_type stale and the value silently rescaled.
+            setValue(item, name, price.value);
+            foundry.utils.setProperty(item, "system.currency_type", price.currency);
         } else {
             setValue(item, name, MEJHelpers.toDefaultCurrency(price));
         }
@@ -149,5 +167,25 @@ export class MEJHelpers {
         let result = (currency?.convert || 1) * value.value;
 
         return result;
+    }
+
+    /**
+     * Create a purchased/looted item on the buyer's actor from fully-prepared itemData (quantity
+     * and price already baked in by the caller). Routing this through sheet._onDropItem is wrong
+     * for any actor sheet backed by itemData.uuid: Foundry's Item.fromDropData/fromUuid resolution
+     * (and rmss's own override, which explicitly re-derives from droppedItem.toObject()) always
+     * prefers that uuid over the inline data, silently discarding the purchased quantity/price and
+     * re-creating the item at its original source quantity instead - for a repeat purchase this
+     * also risks merging into an existing stack using that wrong source quantity rather than
+     * creating a fresh item, which is what one system's bug report ("buying more than 1 doesn't
+     * transfer") traced back to. _onDropItemCreate takes itemData as-is with no uuid detour, so it
+     * still lets a system's sheet apply any of its own on-create defaults (e.g. auto-marking a
+     * freshly acquired weapon as worn) without the data-loss bug.
+     */
+    static createOwnedItem(actor, itemData) {
+        const sheet = actor.sheet;
+        if (sheet?._onDropItemCreate)
+            return sheet._onDropItemCreate(itemData, { preventDefault: () => {}, target: { closest: () => {} } });
+        return actor.createEmbeddedDocuments("Item", [itemData]);
     }
 }
