@@ -3678,6 +3678,13 @@ export class MonksEnhancedJournal {
 							sheet._onDropItem({ preventDefault: () => { }, target: { closest: () => { } } }, itemData);
 						else
 							actor.createEmbeddedDocuments("Item", [itemData]);
+					} else if (game.system.id === "rmss") {
+						// Consumed on the spot (e.g. a meal bought at an inn) never creates a persistent
+						// Item, so rmss's own food-tag/fasting tracking would otherwise never see this
+						// purchase at all - mark it directly instead.
+						import("/systems/rmss/module/actors/services/fasting_service.js").then(({ default: FastingService }) => {
+							FastingService.markAteFoodToday(actor, itemData);
+						});
 					}
 					//deduct the gold
 					if (data.sell > 0)
