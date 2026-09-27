@@ -93,7 +93,12 @@ export class MEJHelpers {
         cost = "" + cost;
         let price = parseFloat(cost.replace(',', ''));
         if (price == 0 || isNaN(price)) {
-            return { value: 0, currency: MEJHelpers.defaultCurrency() };
+            // Don't discard a currency unit that was actually present in the string (e.g. rmss's
+            // getSystemPrice() always appends system.currency_type, even for a 0 value) just
+            // because the amount is zero - only fall back to the default currency when none was
+            // parseable at all.
+            const zeroCurrency = cost.replace(/[^a-z]/gi, '');
+            return { value: 0, currency: zeroCurrency || MEJHelpers.defaultCurrency() };
         }
         if (price < 0) {
             result.consume = true;
